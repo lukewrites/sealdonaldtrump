@@ -2,6 +2,8 @@
 
 Source code for [@sealDonaldTrump](https://twitter.com/sealDonaldTrump), a python-based twitter bot that sounds like @realDonaldTrump, with an aquatic twist.
 
+![@sealDonaldTrump](https://pbs.twimg.com/profile_images/629697134082658305/0weNRg1a.jpg)
+
 ## Technology
 Python 3 along with:
 * [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/)
