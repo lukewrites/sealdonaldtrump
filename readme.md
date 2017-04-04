@@ -2,14 +2,15 @@
 
 Source code for [@sealDonaldTrump](https://twitter.com/sealDonaldTrump), a python-based twitter bot that sounds like @realDonaldTrump, with an aquatic twist.
 
-![@sealDonaldTrump](https://pbs.twimg.com/profile_images/629697134082658305/0weNRg1a.jpg)
+![@sealDonaldTrump](sealDonaldTrump.jpg)
 
 ## Technology
 Python 3 along with:
-* [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/)
-* [tweepy](https://tweepy.readthedocs.io/en/v3.5.0/)
-* [markovify](https://github.com/jsvine/markovify)
-* [nltk](http://nltk.org)
+* [tweepy](https://tweepy.readthedocs.io/en/v3.5.0/) (to grab the tweets)
+* [markovify](https://github.com/jsvine/markovify) (to generate the text)
+* [nltk](http://nltk.org) (to make the markov model just a bit better)
+
+All [to be] deployed on AWS Lambda. What an amazing world we live in.
 
 ## Me
 
