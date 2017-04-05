@@ -1,5 +1,4 @@
 appdirs==1.4.3
-beautifulsoup4==4.5.3
 ChatterBot==0.6.0
 chatterbot-corpus==0.0.1
 future==0.16.0
