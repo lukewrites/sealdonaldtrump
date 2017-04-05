@@ -1,32 +1,48 @@
 import os
 import tweepy
 from tweepy import OAuthHandler
-from nltk import pos_tag
+import nltk
 import markovify
+import re
+import json
 
+
+# here are our various keys to access twitter, as well as some vars that will be
+# used in different functions.
 
 consumer_key = os.environ['CONSUMER_KEY']
 consumer_secret = os.environ['CONSUMER_SECRET']
 access_token = os.environ['ACCESS_TOKEN']
 access_secret = os.environ['ACCESS_SECRET']
 
+auth = OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_secret)
+api = tweepy.API(auth)
+client = tweepy.API(auth)
+
+def tweeter():
+    if os.path.isfile('djt_tweets.json'):
+        with open('djt_tweets.json', 'r') as tt:
+            good_text = POSifiedText.from_json(json.load(tt))
+            api.update_status(good_text.make_short_sentence(140))
+    else:
+        raise Exception("Where's the json?")
+
+
 def clean_tweet(tweet):
     """
-    The formatting stuff is stolen wholesale from twilio's great blog post:
+    The formatting regex is stolen wholesale from twilio's great blog post:
     https://www.twilio.com/blog/2016/09/fun-with-markov-chains-python-and-twilio-sms.html
     The fish names are all my fault.
     """
     tweet = re.sub("https?\:\/\/", "", tweet)   #links
-    # tweet = re.sub("#\S+", "", tweet)           #hashtags
-    # tweet = re.sub("\.?@", "", tweet)           #at mentions
+    tweet = re.sub("bit.ly\/([a-zA-Z1-9]+)", "", tweet)
     tweet = re.sub("Video\:", "", tweet)        #Videos
     tweet = re.sub("\n", " ", tweet)             #new lines
-    # tweet = re.sub("^\.\s.", "", tweet)         #leading whitespace
-    # tweet = re.sub("\s+", " ", tweet)           #extra whitespace
+    tweet = re.sub("\s+", " ", tweet)           #extra whitespace
     tweet = re.sub("&amp;", "and", tweet)       #encoded ampersands
     # now the silliness begins.
     tweet = re.sub("[H*h*]illary", "Halibut", tweet)
-    tweet = re.sub("[C*c*]linton", "Catfish", tweet)
     tweet = re.sub("[F*f*]lynn", "Fish", tweet)
     tweet = re.sub("[S*s*]calia", "Scallop", tweet)
     tweet = re.sub("[P*p*]ence", "Perch", tweet)
@@ -39,10 +55,15 @@ def clean_tweet(tweet):
     tweet = re.sub("[P*p*]utin", "Piranha", tweet)
     tweet = re.sub("[K*k*]elly", "Keelfish", tweet)
     tweet = re.sub("[S*s*]ean", "Suckerfish", tweet)
-    tweet = re.sub("[O*o*][R*r*]eilly", "ORoughy", tweet)
+    tweet = re.sub("[O*o*](')?[R*r*]eilly", "ORoughy", tweet)
     tweet = re.sub("[O*o*]bama\s?[C*c*]are", "OtterCare", tweet)
     tweet = re.sub("[S*s*]essions", "Shrimpfish", tweet)
     tweet = re.sub("[K*k*]aine", "Kelp", tweet)
+    tweet = re.sub("[W*w*]arren", "Walleye", tweet)
+    tweet = re.sub("[I*i*]slam(ic)?", "Orca", tweet)
+    tweet = re.sub("ISIS", "OSIS", tweet)
+    tweet = re.sub("[M*m*]uslim", "Orca", tweet)
+    tweet = re.sub("[T*t*]ed", "Tetra", tweet)
 
     return tweet
 
@@ -55,35 +76,30 @@ def get_and_process_tweets(user="realdonaldtrump"):
     reusable JSON file for use in generating future tweets.
     """
 
-    # environ variables for authentication
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_secret)
-    api = tweepy.API(auth)
-    client = tweepy.API(auth)
-
     all_tweets = []  # a list in which to store DJT's tweets.
 
+    #get DJT's tweets.
     for tweet in tweepy.Cursor(api.user_timeline, id=user).items():
-        if tweet.source == 'Twitter for Android':  # only get tweets from DJT's
+        # if tweet.source == 'Twitter for Android':  # only get tweets from DJT's
                                                    # insecure Android phone
-            fishy_tweet = clean_tweet(tweet.text)  # and add them to the list.
-            all_tweets.append(fishy_tweet)
+        fishy_tweet = clean_tweet(tweet.text)  # and add them to the list.
+        all_tweets.append(fishy_tweet)
 
-
-    with open('djt_tweets.txt', 'rw') as f:
+    # write his crappy tweets to a text file.
+    with open('djt_tweets.txt', 'w') as f:
         for tweet in all_tweets:
-            f.write(tweet)
-        text = t.read()
+            f.write(tweet + ' ')  # need the space so they don't stick together.
 
-    # with open("djt_tweets.txt") as t:
-    #         text = t.read()
-
+    # open the file to POS tag it and process the results into JSON.
+    with open("djt_tweets.txt") as t:
+            text = t.read()
+    #
     text_model = POSifiedText(input_text=text)
     model_json = text_model.to_json()
-    reconstituted_model = markovify.Text.from_json(model_json)
-    reconstituted_model.make_short_sentence(140)
 
-
+    # save the json to disk for future use.
+    with open('djt_tweets.json', 'w', encoding='utf-8') as j:
+        json.dump(model_json, j, ensure_ascii=False)
 
 
 class POSifiedText(markovify.Text):
@@ -97,17 +113,6 @@ class POSifiedText(markovify.Text):
         sentence = " ".join(word.split("::")[0] for word in words)
         return sentence
 
-with open("djt_tweets.txt") as t:
-        text = t.read()
-
-text_model = POSifiedText(input_text=text, state_size=2)
-model_json = text_model.to_json()
-with open("trump_markov.json", 'w') as j:
-    for line in model_json:
-        j.write(line)
-
-reconstituted_model = markovify.Text.from_json(model_json)
-reconstituted_model.make_short_sentence(140)
 
 if __name__ == '__main__':
-    pass
+    tweeter()
