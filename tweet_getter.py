@@ -20,14 +20,10 @@ auth.set_access_token(access_token, access_secret)
 api = tweepy.API(auth)
 client = tweepy.API(auth)
 
-def tweeter():
-    if os.path.isfile('djt_tweets.json'):
-        with open('djt_tweets.json', 'r') as tt:
-            good_text = POSifiedText.from_json(json.load(tt))
-            api.update_status(good_text.make_short_sentence(140))
-    else:
-        raise Exception("Where's the json?")
-
+def tweeter(event, context):  # (event, context) is required for lambda?.
+    with open('djt_tweets.json', 'r') as tt:
+        good_text = POSifiedText.from_json(json.load(tt))
+        api.update_status(good_text.make_short_sentence(140))
 
 def clean_tweet(tweet):
     """
@@ -36,6 +32,7 @@ def clean_tweet(tweet):
     The fish names are all my fault.
     """
     tweet = re.sub("https?\:\/\/", "", tweet)   #links
+    tweet = re.sub("t.co\/([a-zA-Z0-9]+)", "", tweet)
     tweet = re.sub("bit.ly\/([a-zA-Z1-9]+)", "", tweet)
     tweet = re.sub("Video\:", "", tweet)        #Videos
     tweet = re.sub("\n", " ", tweet)             #new lines
@@ -63,7 +60,8 @@ def clean_tweet(tweet):
     tweet = re.sub("[I*i*]slam(ic)?", "Orca", tweet)
     tweet = re.sub("ISIS", "OSIS", tweet)
     tweet = re.sub("[M*m*]uslim", "Orca", tweet)
-    tweet = re.sub("[T*t*]ed", "Tetra", tweet)
+    tweet = re.sub("Ted ", "Tetra ", tweet)
+    tweet = re.sub("@realdonaldtrump", "@sealdonaldtrump", tweet)
 
     return tweet
 
@@ -80,10 +78,10 @@ def get_and_process_tweets(user="realdonaldtrump"):
 
     #get DJT's tweets.
     for tweet in tweepy.Cursor(api.user_timeline, id=user).items():
-        # if tweet.source == 'Twitter for Android':  # only get tweets from DJT's
+        if tweet.source == 'Twitter for Android':  # only get tweets from DJT's
                                                    # insecure Android phone
-        fishy_tweet = clean_tweet(tweet.text)  # and add them to the list.
-        all_tweets.append(fishy_tweet)
+            fishy_tweet = clean_tweet(tweet.text)  # and add them to the list.
+            all_tweets.append(fishy_tweet)
 
     # write his crappy tweets to a text file.
     with open('djt_tweets.txt', 'w') as f:
@@ -94,7 +92,7 @@ def get_and_process_tweets(user="realdonaldtrump"):
     with open("djt_tweets.txt") as t:
             text = t.read()
     #
-    text_model = POSifiedText(input_text=text)
+    text_model = POSifiedText(input_text=text, state_size=3)
     model_json = text_model.to_json()
 
     # save the json to disk for future use.
@@ -115,4 +113,7 @@ class POSifiedText(markovify.Text):
 
 
 if __name__ == '__main__':
-    tweeter()
+    if os.path.isfile('djt_tweets.json'):
+        tweeter()
+    else:
+        get_and_process_tweets()
