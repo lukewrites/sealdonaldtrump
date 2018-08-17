@@ -1,4 +1,4 @@
-# I'm @sealDonaldTrump. Sad!
+# I'm @sealDonaldTrump. Twitter has banned me. Sad!
 
 Source code for [@sealDonaldTrump](https://twitter.com/sealDonaldTrump), a python-based twitter bot that sounds like @realDonaldTrump, with an aquatic twist.
 
@@ -10,8 +10,4 @@ Python 3 along with:
 * [markovify](https://github.com/jsvine/markovify) (to generate the text)
 * [nltk](http://nltk.org) (to make the markov model just a bit better)
 
-All [to be] deployed on AWS Lambda. What an amazing world we live in.
-
-## Me
-
-My name's Luke Petschauer. I love working with natural language in Python. Hire me so I can do it full time!
+All deployed on AWS Lambda. What an amazing world we live in.
